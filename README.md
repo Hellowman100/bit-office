@@ -3,7 +3,7 @@
 A pixel-art office where you hire AI agents, assign them projects, and watch them actually work.
 Leaders delegate, teammates debate, code gets written — all while you supervise like a tiny AI startup CEO.
 
-<video src="https://github.com/user-attachments/assets/8932a1d3-c7cf-4e30-a5ef-c023bf52226a" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/a13ac1a0-8440-49f1-ab1e-110a35847d0c" controls width="100%"></video>
 
 ## Quick Start
 
@@ -11,14 +11,14 @@ Leaders delegate, teammates debate, code gets written — all while you supervis
 npx bit-office
 ```
 
-That's it. Opens a browser UI, auto-detects installed AI backends, generates a pair code for your phone.
+That's it. Opens a browser UI, auto-detects installed AI CLIs, generates a pair code for your phone.
 
 ## Features
 
 - **Pixel Office UI** — PixiJS-rendered 2D office, each AI agent is a pixel character with idle/working/approval animations
 - **Multi-Agent Orchestration** — Team lead delegates tasks to workers, collects results, retries on failure, escalates when stuck
 - **Multi-Channel** — WebSocket (LAN), Ably (remote), Telegram (bot per agent)
-- **Multi-Backend** — Claude Code, Codex, Gemini CLI, Aider, OpenCode — use whatever's installed
+- **Mix & Match Models** — Each agent can run a different AI CLI (Claude Code, Codex, Gemini, Aider, OpenCode). Let Codex lead and review, Claude code, Gemini test — they collaborate on the same project
 - **Mobile PWA** — Install on phone, pair with a 6-digit code, control agents anywhere
 - **Approval Bubbles** — Risky commands (git push, rm -rf, npm install) trigger Yes/No approval on your phone
 - **Office Editor** — Drag-and-drop furniture, paint floors/walls, customize your virtual office
@@ -30,6 +30,10 @@ That's it. Opens a browser UI, auto-detects installed AI backends, generates a p
 - Node.js 18+
 - pnpm
 - At least one AI CLI installed: `claude`, `codex`, `gemini`, `aider`, or `opencode`
+
+### Assets
+
+The pixel office tileset is not included due to license. Purchase it from [donarg.itch.io/officetileset](https://donarg.itch.io/officetileset), then place the downloaded folder at `apps/web/public/Office Tileset` and restart.
 
 ### Setup
 
@@ -151,3 +155,7 @@ Pixel office art inspired by [pixel-agents](https://github.com/pablodelucca/pixe
 ## License
 
 MIT
+
+---
+
+*This entire project was vibe-coded — built with AI, from start to finish.*
