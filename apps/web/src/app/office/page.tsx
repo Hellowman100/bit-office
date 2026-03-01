@@ -1308,36 +1308,7 @@ export default function OfficePage() {
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(200,155,48,0.12)"; e.currentTarget.style.borderColor = "#e8b040"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.borderColor = "#e8b04060"; }}
               >+ Hire</button>
-              {hasTeam ? (<>
-                {teamBusy && (
-                  <button
-                    onClick={handleStopTeam}
-                    style={{
-                      flex: 1, minWidth: 0, padding: "9px 6px",
-                      border: "1px solid #e8903070",
-                      backgroundColor: "transparent", color: "#e89030",
-                      fontSize: 10, fontWeight: 700, cursor: "pointer",
-                      fontFamily: "'Press Start 2P', monospace",
-                      letterSpacing: "0.03em", textAlign: "center",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(224,133,48,0.12)"; e.currentTarget.style.borderColor = "#e89030"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.borderColor = "#e8903070"; }}
-                  >Stop</button>
-                )}
-                <button
-                  onClick={handleFireTeam}
-                  style={{
-                    flex: 1, minWidth: 0, padding: "9px 6px",
-                    border: "1px solid #e0484870",
-                    backgroundColor: "transparent", color: "#e04848",
-                    fontSize: 10, fontWeight: 700, cursor: "pointer",
-                    fontFamily: "'Press Start 2P', monospace",
-                    letterSpacing: "0.03em", textAlign: "center",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(212,68,68,0.12)"; e.currentTarget.style.borderColor = "#e04848"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.borderColor = "#e0484870"; }}
-                >Fire Team</button>
-              </>) : (
+              {!hasTeam && (
                 <button
                   onClick={() => setShowHireTeamModal(true)}
                   style={{
@@ -1454,15 +1425,42 @@ export default function OfficePage() {
                         : <>{agent.status === "done" ? "✓ " : agent.status === "working" ? "▶ " : ""}{cfg.label}</>
                       }
                     </span>
+                    {agentState?.isTeamLead && (
+                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                        {teamBusy && (
+                          <span
+                            onClick={(e) => { e.stopPropagation(); handleStopTeam(); }}
+                            style={{
+                              fontSize: 9, fontWeight: 700, color: "#fff", cursor: "pointer",
+                              padding: "3px 6px", backgroundColor: "#e89030",
+                              fontFamily: "monospace", letterSpacing: "0.03em",
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#d07820"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#e89030"; }}
+                          >STOP</span>
+                        )}
+                        <span
+                          onClick={(e) => { e.stopPropagation(); handleFireTeam(); }}
+                          style={{
+                            fontSize: 9, fontWeight: 700, color: "#fff", cursor: "pointer",
+                            padding: "3px 6px", backgroundColor: "#d04040",
+                            fontFamily: "monospace", letterSpacing: "0.03em",
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#b83030"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#d04040"; }}
+                        >FIRE</span>
+
+                      </div>
+                    )}
                     {!agentState?.teamId && (
                       <span
                         onClick={(e) => { e.stopPropagation(); handleFire(agent.agentId); }}
                         style={{
-                          fontSize: 10, color: "#5a4838", cursor: "pointer", lineHeight: 1,
+                          fontSize: 10, color: "#c04040", cursor: "pointer", lineHeight: 1,
                           padding: "4px", flexShrink: 0,
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = "#e04848"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = "#5a4838"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "#ff4040"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = "#c04040"; }}
                       >✕</span>
                     )}
                   </button>

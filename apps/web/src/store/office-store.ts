@@ -295,8 +295,9 @@ export const useOfficeStore = create<OfficeStore>((set, get) => ({
         }
         case "AGENT_STATUS": {
           const agent = agents.get(event.agentId) ?? defaultAgent(event.agentId);
-          // Guard: ignore all server-side idle downgrades; rely on TASK_DONE/TASK_FAILED events instead
-          if (event.status === "idle" && agent.status !== "idle") {
+          // Guard: for managed agents, ignore server-side idle downgrades — rely on TASK_DONE/TASK_FAILED instead.
+          // External agents have no TASK_DONE events, so always accept their status updates.
+          if (event.status === "idle" && agent.status !== "idle" && !agent.isExternal) {
             break;
           }
           agents.set(event.agentId, { ...agent, status: event.status });

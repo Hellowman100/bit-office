@@ -363,6 +363,17 @@ async function main() {
 
   // Start external output reader
   outputReader = new ExternalOutputReader();
+  outputReader.setOnStatus((agentId, status) => {
+    const ext = externalAgents.get(agentId);
+    if (ext && ext.status !== status) {
+      ext.status = status;
+      publishEvent({
+        type: "AGENT_STATUS",
+        agentId,
+        status,
+      });
+    }
+  });
 
   // Start process scanner to detect external CLI agents
   scanner = new ProcessScanner(
@@ -426,6 +437,8 @@ async function main() {
       onChanged: (agents) => {
         for (const agent of agents) {
           const ext = externalAgents.get(agent.agentId);
+          // For Claude backend, JSONL reader drives status — skip CPU-based updates
+          if (ext?.backendId === "claude") continue;
           if (ext) {
             ext.status = agent.status;
           }

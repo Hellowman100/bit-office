@@ -4,6 +4,7 @@ import path from "path";
 import os from "os";
 
 type OutputCallback = (line: string) => void;
+type StatusCallback = (agentId: string, status: "working" | "idle") => void;
 
 interface ReaderState {
   agentId: string;
@@ -29,6 +30,12 @@ const SOURCE_EXTS = new Set([
  */
 export class ExternalOutputReader {
   private readers = new Map<string, ReaderState>();
+  private onStatus: StatusCallback | null = null;
+
+  /** Set a callback to be notified when an external agent's status changes (driven by JSONL entries) */
+  setOnStatus(cb: StatusCallback): void {
+    this.onStatus = cb;
+  }
 
   attach(
     agentId: string,
@@ -134,7 +141,7 @@ export class ExternalOutputReader {
           if (!line.trim()) continue;
           try {
             const entry = JSON.parse(line);
-            this.extractClaudeOutput(entry, emitThrottled);
+            this.extractClaudeOutput(entry, emitThrottled, agentId);
           } catch {
             // Skip malformed lines
           }
@@ -229,14 +236,27 @@ export class ExternalOutputReader {
 
   /**
    * Extract readable output from a Claude JSONL entry.
-   * Claude JSONL format has entries like:
-   * - { type: "assistant", message: { content: [{ type: "text", text: "..." }, { type: "thinking", thinking: "..." }] } }
-   * - { type: "result", result: "..." }
+   * Also drives status: "human" → working, "result" → idle.
+   *
+   * Claude JSONL types:
+   * - { type: "human" }         → user sent message, agent starts working
+   * - { type: "assistant", message: { content: [...] } } → agent responding
+   * - { type: "result", result: "..." } → turn complete, waiting for input
    */
-  private extractClaudeOutput(entry: Record<string, unknown>, emit: (text: string) => void): void {
+  private extractClaudeOutput(
+    entry: Record<string, unknown>,
+    emit: (text: string) => void,
+    agentId: string,
+  ): void {
+    // User message → agent is now working
+    if (entry.type === "user" || entry.type === "human") {
+      this.onStatus?.(agentId, "working");
+    }
+
     // Assistant messages — extract text blocks (skip thinking blocks)
     if (entry.type === "assistant") {
       const message = entry.message as Record<string, unknown> | undefined;
+      const stopReason = message?.stop_reason ?? (entry as Record<string, unknown>).stop_reason;
       const content = message?.content as Array<Record<string, unknown>> | undefined;
       if (content && Array.isArray(content)) {
         for (const block of content) {
@@ -245,14 +265,21 @@ export class ExternalOutputReader {
           }
         }
       }
+      // end_turn means the assistant finished — set idle; otherwise working
+      if (stopReason === "end_turn") {
+        this.onStatus?.(agentId, "idle");
+      } else {
+        this.onStatus?.(agentId, "working");
+      }
     }
 
-    // Result entries
+    // Result → turn complete, agent is idle (waiting for user input)
     if (entry.type === "result") {
       const result = entry.result;
       if (typeof result === "string" && result.trim()) {
         emit(result.slice(0, 200));
       }
+      this.onStatus?.(agentId, "idle");
     }
   }
 
