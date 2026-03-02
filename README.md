@@ -35,18 +35,20 @@ Opens a browser UI, auto-detects installed AI CLIs, generates a pair code for yo
 ### Team Workflow
 
 ```mermaid
-flowchart LR
-    A(["You"]) --> B["Leader\ndesigns plan"] --> C{"Approve?"}
+flowchart TD
+    A(["You"]) --> B["Leader designs plan"]
+    B --> C{"Approve?"}
     C -- "Feedback" --> B
-    C -- "Yes" --> D["Dev\nbuilds"] --> E["Reviewer\nchecks"]
+    C -- "Yes" --> D["Dev builds"]
+    D --> E["Reviewer checks"]
     E -- "FAIL" --> D
     E -- "PASS" --> F(["Preview"])
     F --> G{"Done?"}
     G -- "Feedback" --> D
     G -- "End" --> A
 
-    style A fill:#4a9eff,color:#fff,font-size:12px
-    style F fill:#2ecc71,color:#fff,font-size:12px
+    style A fill:#4a9eff,color:#fff
+    style F fill:#2ecc71,color:#fff
 ```
 
 Three loops keep things moving:
@@ -56,17 +58,9 @@ Three loops keep things moving:
 
 The leader acts as Creative Director — designing the product vision (theme, style, user experience), not just listing technical tasks. After you approve, the team executes autonomously with built-in review cycles and budget safeguards.
 
-### Access Anywhere
-
-- **Desktop** — Browser UI on your LAN
-- **Mobile PWA** — Install on phone, pair with 6-digit code, full control
-- **Remote** — Ably channel for access outside your network
-- **Telegram** — One bot per agent, chat directly
-
-### Extras
-
-- **External CLI Monitor** — Auto-detects Claude Code, Codex, etc. already running on your machine and streams them into the office UI
-- **Office Editor** — Drag-and-drop furniture, paint floors/walls, customize your pixel office
+- **CLI Monitor** — Already running Claude Code or Codex in your terminal? Bit Office auto-detects them and streams the live conversation into your pixel office. Watch your AI think, approve commands, and read output — all from one immersive UI instead of switching between terminals
+- **Access Anywhere** — Desktop browser, mobile PWA (pair with 6-digit code), Ably for remote access, or Telegram bots — one per agent
+- **Office Editor** — Drag-and-drop furniture, paint floors/walls, customize your virtual office
 
 ## How Teams Work
 
