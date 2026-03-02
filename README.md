@@ -13,6 +13,7 @@ Using one AI CLI is powerful. Running a **team** of them is something else:
 - **"Build me a game"** → Leader designs the concept, developer writes all the code, reviewer catches bugs, you get a playable prototype
 - **Mix models freely** — Claude Code writes, Codex reviews, Gemini tests. Each agent runs whichever AI CLI you choose
 - **Phone as remote control** — Pair with a 6-digit code, approve risky commands from the couch, check progress on the bus
+- **Immersive CLI experience** — Already running Claude Code or Codex in your terminal? Bit Office auto-detects them and streams the live conversation into your pixel office. Watch AI think, approve commands, read output — all in one place instead of switching terminals
 - **See them work** — Pixel characters animate in a 2D office while agents think, delegate, and debate behind the scenes
 
 ## Quick Start
@@ -58,8 +59,7 @@ Three loops keep things moving:
 
 The leader acts as Creative Director — designing the product vision (theme, style, user experience), not just listing technical tasks. After you approve, the team executes autonomously with built-in review cycles and budget safeguards.
 
-- **CLI Monitor** — Already running Claude Code or Codex in your terminal? Bit Office auto-detects them and streams the live conversation into your pixel office. Watch your AI think, approve commands, and read output — all from one immersive UI instead of switching between terminals
-- **Access Anywhere** — Desktop browser, mobile PWA (pair with 6-digit code), Ably for remote access, or Telegram bots — one per agent
+- **Access Anywhere** — Desktop browser, mobile PWA (pair with 6-digit code), Ably for remote access, or Telegram bots
 - **Office Editor** — Drag-and-drop furniture, paint floors/walls, customize your virtual office
 
 ## How Teams Work
