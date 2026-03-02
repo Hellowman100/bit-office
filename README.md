@@ -35,20 +35,18 @@ Opens a browser UI, auto-detects installed AI CLIs, generates a pair code for yo
 ### Team Workflow
 
 ```mermaid
-flowchart TD
-    A["You describe an idea"] --> B["Leader designs plan"]
-    B --> C{"You review"}
-    C -- "Give feedback" --> B
-    C -- "Approve" --> D["Dev builds & self-tests"]
-    D --> E["Reviewer checks code + features"]
+flowchart LR
+    A(["You"]) --> B["Leader\ndesigns plan"] --> C{"Approve?"}
+    C -- "Feedback" --> B
+    C -- "Yes" --> D["Dev\nbuilds"] --> E["Reviewer\nchecks"]
     E -- "FAIL" --> D
-    E -- "PASS" --> F["Preview delivered"]
-    F --> G{"You review result"}
-    G -- "Give feedback" --> D
-    G -- "End Project" --> A
+    E -- "PASS" --> F(["Preview"])
+    F --> G{"Done?"}
+    G -- "Feedback" --> D
+    G -- "End" --> A
 
-    style A fill:#4a9eff,color:#fff
-    style F fill:#2ecc71,color:#fff
+    style A fill:#4a9eff,color:#fff,font-size:12px
+    style F fill:#2ecc71,color:#fff,font-size:12px
 ```
 
 Three loops keep things moving:
