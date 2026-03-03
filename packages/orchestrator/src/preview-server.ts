@@ -12,6 +12,7 @@ const STATIC_PORT = 9100;
 class PreviewServer {
   private process: ChildProcess | null = null;
   private currentDir: string | null = null;
+  private isDetached = false;
 
   /**
    * Mode 1: Serve a static file directory on a fixed port.
@@ -30,6 +31,7 @@ class PreviewServer {
       });
       this.process.unref();
       this.currentDir = dir;
+      this.isDetached = true;
       const url = `http://localhost:${STATIC_PORT}/${fileName}`;
       console.log(`[PreviewServer] Serving ${dir} on port ${STATIC_PORT}`);
       return url;
@@ -56,6 +58,7 @@ class PreviewServer {
       });
       this.process.unref();
       this.currentDir = cwd;
+      this.isDetached = true;
       const url = `http://localhost:${port}`;
       console.log(`[PreviewServer] Running "${cmd}" in ${cwd}, preview at port ${port}`);
       return url;
@@ -68,6 +71,7 @@ class PreviewServer {
   /**
    * Mode 3: Launch a desktop/CLI process (no web preview URL).
    * Used for Pygame, Tkinter, Electron, terminal apps, etc.
+   * NOT detached — GUI apps need the login session to access WindowServer (macOS).
    */
   launchProcess(cmd: string, cwd: string): void {
     this.stop();
@@ -76,12 +80,18 @@ class PreviewServer {
       this.process = spawn(cmd, {
         shell: true,
         cwd,
-        stdio: "ignore",
-        detached: true,
+        stdio: ["ignore", "ignore", "pipe"],
       });
-      this.process.unref();
       this.currentDir = cwd;
-      console.log(`[PreviewServer] Launched "${cmd}" in ${cwd}`);
+      this.isDetached = false;
+      console.log(`[PreviewServer] Launched "${cmd}" in ${cwd} (pid=${this.process.pid})`);
+      this.process.stderr?.on("data", (data: Buffer) => {
+        const msg = data.toString().trim();
+        if (msg) console.log(`[PreviewServer] stderr: ${msg.slice(0, 200)}`);
+      });
+      this.process.on("exit", (code) => {
+        console.log(`[PreviewServer] Process exited with code ${code}`);
+      });
     } catch (e) {
       console.log(`[PreviewServer] Failed to launch process: ${e}`);
     }
@@ -91,13 +101,19 @@ class PreviewServer {
   stop() {
     if (this.process) {
       try {
-        // Kill the process group to clean up child processes (e.g. node_modules/.bin/*)
-        if (this.process.pid) process.kill(-this.process.pid, "SIGTERM");
+        if (this.isDetached && this.process.pid) {
+          // Detached: kill the process group (pgid = pid) to clean up child processes
+          process.kill(-this.process.pid, "SIGTERM");
+        } else {
+          // Non-detached (GUI apps): kill process directly — shell forwards signal to children
+          this.process.kill("SIGTERM");
+        }
       } catch {
         try { this.process.kill("SIGTERM"); } catch { /* already dead */ }
       }
       this.process = null;
       this.currentDir = null;
+      this.isDetached = false;
       console.log(`[PreviewServer] Stopped`);
     }
   }
