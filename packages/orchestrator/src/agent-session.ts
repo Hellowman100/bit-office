@@ -92,6 +92,8 @@ export class AgentSession {
   private _renderPrompt: (templateName: string, vars: Record<string, string | undefined>) => string;
   private timedOut = false;
   private _isTeamLead: boolean;
+  /** Whether this leader has already been through execute phase at least once */
+  private _hasExecuted = false;
   private _lastResult: string | null = null;
   /** Original user-facing task prompt (for leader state-summary mode) */
   originalTask: string | null = null;
@@ -203,16 +205,20 @@ export class AgentSession {
         prompt,
         soloHint: this.teamId ? "" : "- You are a SOLO developer. Do NOT delegate, assign tasks, or mention other team members. Do ALL the work yourself.",
       };
+      // Capture before template selection modifies it
+      const isFirstExecute = this._isTeamLead && phaseOverride === "execute" && !this._hasExecuted;
+
       let fullPrompt: string;
       if (this._isTeamLead && phaseOverride && ["create", "design", "complete"].includes(phaseOverride)) {
         // Conversational phases: use continuation template if resuming, full template if first turn
         const templateName = this.hasHistory ? `leader-${phaseOverride}-continue` : `leader-${phaseOverride}`;
         fullPrompt = this._renderPrompt(templateName, templateVars);
       } else if (this._isTeamLead) {
-        // When entering execute phase explicitly, always use leader-initial (full delegation rules)
-        // even if hasHistory is true from previous conversational phases
-        const useInitial = phaseOverride === "execute" || !this.hasHistory;
+        // First time entering execute: use leader-initial (full delegation rules)
+        // Subsequent execute (feedback loop / result forwarding): use leader-continue to keep context
+        const useInitial = isFirstExecute || !this.hasHistory;
         fullPrompt = this._renderPrompt(useInitial ? "leader-initial" : "leader-continue", templateVars);
+        if (phaseOverride === "execute") this._hasExecuted = true;
       } else {
         const workerInitial = this.role.toLowerCase().includes("review") ? "worker-reviewer-initial" : "worker-initial";
         fullPrompt = this._renderPrompt(this.hasHistory ? "worker-continue" : workerInitial, templateVars);
@@ -225,7 +231,9 @@ export class AgentSession {
         fullAccess,
         noTools: this._isTeamLead,
         verbose,
-        skipResume: this._isTeamLead && this.hasHistory && phaseOverride !== "create" && phaseOverride !== "design" && phaseOverride !== "complete",
+        // Only skip resume on first execute (to shed conversational create/design context).
+        // On subsequent runs (result forwarding, user feedback), resume so leader keeps context.
+        skipResume: isFirstExecute && this.hasHistory,
       });
 
       // Log which binary + env state
@@ -725,6 +733,7 @@ export class AgentSession {
     this.sessionId = null;
     this.originalTask = null;
     this.currentPhase = null;
+    this._hasExecuted = false;
     this._lastResult = null;
     this._lastResultText = null;
     this._lastFullOutput = null;
