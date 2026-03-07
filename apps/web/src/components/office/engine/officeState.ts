@@ -74,7 +74,7 @@ export class OfficeState {
     this.furniture = layoutToFurnitureInstances(layout.furniture)
     this.walkableTiles = getWalkableTiles(this.tileMap, this.blockedTiles)
 
-    // Reassign characters to seats
+    // Reassign characters to seats and relocate to valid positions
     for (const ch of this.characters.values()) {
       if (ch.seatId) {
         const seat = this.seats.get(ch.seatId)
@@ -91,6 +91,22 @@ export class OfficeState {
           }
         }
       }
+
+      // Relocate character to a valid position in the new layout
+      if (ch.seatId) {
+        const seat = this.seats.get(ch.seatId)!
+        ch.tileCol = seat.seatCol
+        ch.tileRow = seat.seatRow
+        ch.dir = seat.facingDir
+      } else if (this.walkableTiles.length > 0) {
+        const spawn = this.walkableTiles[Math.floor(Math.random() * this.walkableTiles.length)]
+        ch.tileCol = spawn.col
+        ch.tileRow = spawn.row
+      }
+      ch.x = ch.tileCol * TILE_SIZE + TILE_SIZE / 2
+      ch.y = ch.tileRow * TILE_SIZE + TILE_SIZE / 2
+      ch.path = []
+      ch.moveProgress = 0
     }
     this.rebuildFurnitureInstances()
   }
