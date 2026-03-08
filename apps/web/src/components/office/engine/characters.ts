@@ -46,13 +46,15 @@ export function createCharacter(
   seatId: string | null,
   seat: Seat | null,
   hueShift = 0,
+  initialState?: CharacterState,
 ): Character {
   const col = seat ? seat.seatCol : 1
   const row = seat ? seat.seatRow : 1
   const center = tileCenter(col, row)
+  const state = initialState ?? (seat ? CharacterState.TYPE : CharacterState.IDLE)
   return {
     id,
-    state: CharacterState.TYPE,
+    state,
     dir: seat ? seat.facingDir : Direction.DOWN,
     x: center.x,
     y: center.y,
@@ -65,10 +67,10 @@ export function createCharacter(
     hueShift,
     frame: 0,
     frameTimer: 0,
-    wanderTimer: 0,
+    wanderTimer: state === CharacterState.IDLE ? randomRange(WANDER_PAUSE_MIN_SEC, WANDER_PAUSE_MAX_SEC) : 0,
     wanderCount: 0,
     wanderLimit: randomInt(WANDER_MOVES_BEFORE_REST_MIN, WANDER_MOVES_BEFORE_REST_MAX),
-    isActive: true,
+    isActive: state === CharacterState.TYPE,
     seatId,
     bubbleType: null,
     bubbleTimer: 0,
@@ -133,9 +135,7 @@ export function updateCharacter(
           ch.seatTimer = 0
         }
         if (!ch.seatId) {
-          ch.state = CharacterState.TYPE
-          ch.frame = 0
-          ch.frameTimer = 0
+          // No work seat available — just stand idle, don't type on air
           break
         }
         const seat = seats.get(ch.seatId)
@@ -199,7 +199,12 @@ export function updateCharacter(
           if (restSeatId) {
             const restSeat = seats.get(restSeatId)
             if (restSeat) {
+              // Temporarily unblock the rest seat tile so pathfinding can reach it
+              const restKey = `${restSeat.seatCol},${restSeat.seatRow}`
+              const wasBlocked = blockedTiles.has(restKey)
+              if (wasBlocked) blockedTiles.delete(restKey)
               const path = findPath(ch.tileCol, ch.tileRow, restSeat.seatCol, restSeat.seatRow, tileMap, blockedTiles)
+              if (wasBlocked) blockedTiles.add(restKey)
               if (path.length > 0) {
                 restSeat.assigned = true
                 ch.restSeatId = restSeatId
@@ -245,7 +250,8 @@ export function updateCharacter(
 
         if (ch.isActive) {
           if (!ch.seatId) {
-            ch.state = CharacterState.TYPE
+            // No work seat — stand idle, don't type on air
+            ch.state = CharacterState.IDLE
           } else {
             const seat = seats.get(ch.seatId)
             if (seat && ch.tileCol === seat.seatCol && ch.tileRow === seat.seatRow) {

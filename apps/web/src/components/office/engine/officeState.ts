@@ -137,23 +137,15 @@ export class OfficeState {
       ? { palette, hueShift: 0 }
       : this.pickDiversePalette()
 
-    const seatId = this.findFreeSeat()
-
-    let ch: Character
-    if (seatId) {
-      const seat = this.seats.get(seatId)!
-      seat.assigned = true
-      ch = createCharacter(charId, pickedPalette, seatId, seat, hueShift)
-    } else {
-      const spawn = this.walkableTiles.length > 0
-        ? this.walkableTiles[Math.floor(Math.random() * this.walkableTiles.length)]
-        : { col: 1, row: 1 }
-      ch = createCharacter(charId, pickedPalette, null, null, hueShift)
-      ch.x = spawn.col * TILE_SIZE + TILE_SIZE / 2
-      ch.y = spawn.row * TILE_SIZE + TILE_SIZE / 2
-      ch.tileCol = spawn.col
-      ch.tileRow = spawn.row
-    }
+    // All agents start idle and wandering — work seats are assigned only when they become active
+    const spawn = this.walkableTiles.length > 0
+      ? this.walkableTiles[Math.floor(Math.random() * this.walkableTiles.length)]
+      : { col: 1, row: 1 }
+    const ch = createCharacter(charId, pickedPalette, null, null, hueShift, CharacterState.IDLE)
+    ch.x = spawn.col * TILE_SIZE + TILE_SIZE / 2
+    ch.y = spawn.row * TILE_SIZE + TILE_SIZE / 2
+    ch.tileCol = spawn.col
+    ch.tileRow = spawn.row
 
     // Mark as external if applicable
     if (isExternal) {
@@ -205,12 +197,33 @@ export class OfficeState {
     ch.isActive = isNowActive
 
     if (!isNowActive && wasActive) {
-      // Just became inactive
+      // Just became inactive — release work seat so others can use it
+      if (ch.seatId) {
+        const seat = this.seats.get(ch.seatId)
+        if (seat) seat.assigned = false
+        ch.seatId = null
+      }
       ch.seatTimer = -1
       ch.path = []
       ch.moveProgress = 0
       this.rebuildFurnitureInstances()
     } else if (isNowActive && !wasActive) {
+      // Just became active — find a free work seat
+      if (!ch.seatId) {
+        // Release rest seat if sitting on one
+        if (ch.restSeatId) {
+          const rs = this.seats.get(ch.restSeatId)
+          if (rs) rs.assigned = false
+          ch.restSeatId = null
+          ch.seatTimer = 0
+        }
+        const seatId = this.findFreeSeat()
+        if (seatId) {
+          const seat = this.seats.get(seatId)!
+          seat.assigned = true
+          ch.seatId = seatId
+        }
+      }
       this.rebuildFurnitureInstances()
     }
   }
@@ -344,6 +357,16 @@ export class OfficeState {
           }
         }
         continue
+      }
+
+      // Active character without a work seat — try to claim one
+      if (ch.isActive && !ch.seatId && ch.state === CharacterState.IDLE) {
+        const seatId = this.findFreeSeat()
+        if (seatId) {
+          const seat = this.seats.get(seatId)!
+          seat.assigned = true
+          ch.seatId = seatId
+        }
       }
 
       // Temporarily unblock own seat so character can pathfind to it
