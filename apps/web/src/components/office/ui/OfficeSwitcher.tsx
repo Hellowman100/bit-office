@@ -131,7 +131,7 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
           borderRadius: 0,
           padding: 0,
           boxShadow: '2px 2px 0px #0a0a14',
-          minWidth: 320,
+          width: 480,
           maxWidth: '90vw',
           maxHeight: '80vh',
           display: 'flex',
@@ -173,8 +173,8 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
             padding: '12px',
             overflowY: 'auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '10px',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '8px',
           }}
         >
           {offices.length === 0 && (
@@ -197,14 +197,12 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  background: isCurrent
-                    ? 'rgba(200, 155, 48, 0.15)'
-                    : isHovered
-                      ? 'rgba(255, 255, 255, 0.06)'
-                      : 'rgba(255, 255, 255, 0.02)',
+                  background: isHovered && !isCurrent
+                    ? 'rgba(255, 255, 255, 0.06)'
+                    : 'transparent',
                   border: isCurrent
-                    ? '2px solid rgba(200, 155, 48, 0.5)'
-                    : '2px solid rgba(255, 255, 255, 0.1)',
+                    ? '2px solid #e8b040'
+                    : '2px solid rgba(255, 255, 255, 0.08)',
                   borderRadius: 0,
                   padding: 0,
                   cursor: loading ? 'wait' : 'pointer',
@@ -212,11 +210,11 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
                   opacity: loading && !isLoading ? 0.5 : 1,
                 }}
               >
-                {/* Thumbnail */}
+                {/* Square thumbnail */}
                 <div
                   style={{
                     width: '100%',
-                    paddingBottom: '75%',
+                    paddingBottom: '100%',
                     position: 'relative',
                     background: '#0a0a14',
                   }}
@@ -235,7 +233,6 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
                       }}
                     />
                   )}
-                  {/* Loading overlay */}
                   {isLoading && (
                     <div
                       style={{
@@ -257,17 +254,15 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
                 {/* Name */}
                 <div
                   style={{
-                    padding: '6px 8px',
-                    fontSize: 11,
+                    padding: '5px 4px',
+                    fontSize: 10,
                     fontFamily: 'monospace',
-                    color: isCurrent ? '#e8b040' : 'rgba(255, 255, 255, 0.7)',
+                    color: isCurrent ? '#e8b040' : 'rgba(255, 255, 255, 0.6)',
                     textAlign: 'center',
                     width: '100%',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
                   }}
                 >
                   {entry.name}
-                  {isCurrent && ' (current)'}
                 </div>
               </button>
             )
