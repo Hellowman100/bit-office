@@ -3053,25 +3053,28 @@ export default function OfficePage() {
                   <span
                     onClick={handleStopTeam}
                     style={{
-                      fontSize: 12, fontWeight: 700, color: "#fff", cursor: "pointer",
-                      padding: "5px 10px", borderRadius: 3, backgroundColor: "#e89030",
+                      fontSize: 12, fontWeight: 700, color: "#e89030", cursor: "pointer",
+                      padding: "5px 10px", borderRadius: 3, backgroundColor: "transparent",
+                      border: "1px solid #e8903060",
                       fontFamily: "monospace", letterSpacing: "0.03em",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#d07820"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#e89030"; }}
-                  >STOP</span>
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(232,144,48,0.15)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >Stop Work</span>
                 )}
+                {hasTeam && <span style={{ flex: 1 }} />}
                 {hasTeam && (
                   <span
                     onClick={handleFireTeam}
                     style={{
-                      fontSize: 12, fontWeight: 700, color: "#fff", cursor: "pointer",
-                      padding: "5px 10px", borderRadius: 3, backgroundColor: "#d04040",
+                      fontSize: 12, fontWeight: 700, color: "#c04040", cursor: "pointer",
+                      padding: "5px 10px", borderRadius: 3, backgroundColor: "transparent",
+                      border: "1px solid #c0404060",
                       fontFamily: "monospace", letterSpacing: "0.03em",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#b83030"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#d04040"; }}
-                  >{"\u2715"} Fire</span>
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(192,64,64,0.15)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >{"\u2715"} Fire Team</span>
                 )}
               </div>
             )}
