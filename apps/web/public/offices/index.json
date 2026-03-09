@@ -1,23 +1,63 @@
 [
   {
     "id": "default",
-    "name": "Modern Office",
-    "file": "default.zip"
+    "name": "Modern",
+    "file": "modernCozy.zip"
   },
   {
     "id": "Nostalgic",
-    "name": "Nostalgic Office",
+    "name": "Retro",
     "file": "Nostalgic.zip"
   }
   ,
   {
     "id": "Cute Whimsical",
-    "name": "Cute Whimsical Office",
+    "name": "Cute Whimsical",
     "file": "cute-whimsical.zip"
   },
   {
+    "id": "Eastern Fantasy",
+    "name": "Eastern Fantasy",
+    "file": "easternFantasy.zip"
+  },
+  {
+    "id": "Historical",
+    "name": "Historical",
+    "file": "historical.zip"
+  },
+  {
+    "id": "Mythological",
+    "name": "Mythological",
+    "file": "mythological.zip"
+  },
+  {
+    "id": "Western Fantasy",
+    "name": "Western Fantasy",
+    "file": "westernFantasy.zip"
+  },
+  {
     "id": "Cyberpunk",
-    "name": "Cyberpunk Office",
+    "name": "Cyberpunk",
     "file": "cyberpunk.zip"
+  },
+  {
+    "id": "SciFi",
+    "name": "SciFi",
+    "file": "sifi.zip"
+  },
+  {
+    "id": "Gothic",
+    "name": "Gothic",
+    "file": "gothic.zip"
+  },
+  {
+    "id": "Post Apocalyptic",
+    "name": "Post Apocalyptic",
+    "file": "postApocalyptic.zip"
+  },
+  {
+    "id": "DarkLegend",
+    "name": "DarkLegend",
+    "file": "darkLegend.zip"
   }
 ]

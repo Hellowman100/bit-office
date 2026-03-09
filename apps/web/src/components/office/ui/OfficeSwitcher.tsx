@@ -168,11 +168,17 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
           >X</button>
         </div>
 
-        {/* Office grid */}
+        {/* Office grid — outer scroll wrapper, inner grid */}
+        <div
+          style={{
+            overflowY: 'auto',
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
         <div
           style={{
             padding: '12px',
-            overflowY: 'auto',
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
             gap: '8px',
@@ -215,9 +221,10 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
                 <div
                   style={{
                     width: '100%',
-                    paddingBottom: '100%',
+                    aspectRatio: '1',
                     position: 'relative',
                     background: '#0a0a14',
+                    flexShrink: 0,
                   }}
                 >
                   {thumbSrc && (
@@ -268,6 +275,7 @@ export default function OfficeSwitcher({ isOpen, onClose, onSelect, currentOffic
               </button>
             )
           })}
+        </div>
         </div>
       </div>
     </>
