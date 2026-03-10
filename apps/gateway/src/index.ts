@@ -182,6 +182,25 @@ function saveAgentDefs(agents: AgentDefinition[]): void {
 let agentDefs: AgentDefinition[] = [];
 
 // ---------------------------------------------------------------------------
+// Archive helpers (shared between phase-complete and END_PROJECT)
+// ---------------------------------------------------------------------------
+
+function buildArchiveAgents(): PersistedAgent[] {
+  return orc.getAllAgents().map(a => ({
+    agentId: a.agentId, name: a.name, role: a.role,
+    personality: a.personality, backend: a.backend,
+    palette: a.palette, teamId: a.teamId, isTeamLead: orc.isTeamLead(a.agentId),
+  }));
+}
+
+function buildArchiveTeam(): TeamState["team"] {
+  const phases = orc.getAllTeamPhases();
+  if (phases.length === 0) return null;
+  const tp = phases[0];
+  return { teamId: tp.teamId, leadAgentId: tp.leadAgentId, phase: tp.phase, projectDir: orc.getTeamProjectDir() };
+}
+
+// ---------------------------------------------------------------------------
 // Map orchestrator events → GatewayEvent (wire protocol)
 // ---------------------------------------------------------------------------
 
@@ -220,6 +239,13 @@ function mapOrchestratorEvent(e: OrchestratorEvent): GatewayEvent | null {
       bufferEvent(phaseEvt);
       publishEvent(phaseEvt);
       persistTeamState();
+
+      // Archive project when it reaches "complete" so ratings and history are available immediately
+      if (e.phase === "complete") {
+        archiveProject(buildArchiveAgents(), buildArchiveTeam());
+        // Don't resetProjectBuffer here — user may give feedback and continue
+      }
+
       return null; // already published directly
     }
     case "token:update":
@@ -352,20 +378,23 @@ function handleCommand(parsed: Command, meta: CommandMeta) {
       break;
     }
     case "SERVE_PREVIEW": {
+      // Strip markdown formatting that leaders copy from dev output (e.g. "** `npx vite`" → "npx vite")
+      const cleanCmd = parsed.previewCmd?.replace(/\*\*/g, "").replace(/`/g, "").replace(/^_+|_+$/g, "").trim();
+      const cleanPath = parsed.filePath?.replace(/\*\*/g, "").replace(/`/g, "").replace(/^_+|_+$/g, "").trim();
       // Guard: reject placeholder values that agents hallucinate
-      const cmdLooksValid = parsed.previewCmd && !/^[\[(].*[\])]$/.test(parsed.previewCmd) && !/^none$/i.test(parsed.previewCmd);
+      const cmdLooksValid = cleanCmd && !/^[\[(].*[\])]$/.test(cleanCmd) && !/^none$/i.test(cleanCmd);
       if (cmdLooksValid && parsed.previewPort) {
         const cwd = parsed.cwd ?? config.defaultWorkspace;
-        console.log(`[Gateway] SERVE_PREVIEW (cmd): "${parsed.previewCmd}" port=${parsed.previewPort} cwd=${cwd}`);
-        previewServer.runCommand(parsed.previewCmd, cwd, parsed.previewPort);
+        console.log(`[Gateway] SERVE_PREVIEW (cmd): "${cleanCmd}" port=${parsed.previewPort} cwd=${cwd}`);
+        previewServer.runCommand(cleanCmd, cwd, parsed.previewPort);
       } else if (cmdLooksValid) {
         // Desktop/CLI app: launch process without port (no browser preview)
         const cwd = parsed.cwd ?? config.defaultWorkspace;
-        console.log(`[Gateway] SERVE_PREVIEW (launch): "${parsed.previewCmd}" cwd=${cwd}`);
-        previewServer.launchProcess(parsed.previewCmd, cwd);
-      } else if (parsed.filePath) {
-        console.log(`[Gateway] SERVE_PREVIEW (static): ${parsed.filePath}`);
-        previewServer.serve(parsed.filePath);
+        console.log(`[Gateway] SERVE_PREVIEW (launch): "${cleanCmd}" cwd=${cwd}`);
+        previewServer.launchProcess(cleanCmd, cwd);
+      } else if (cleanPath) {
+        console.log(`[Gateway] SERVE_PREVIEW (static): ${cleanPath}`);
+        previewServer.serve(cleanPath);
       }
       break;
     }
@@ -506,19 +535,9 @@ function handleCommand(parsed: Command, meta: CommandMeta) {
       const agentId = parsed.agentId;
       console.log(`[Gateway] END_PROJECT: agent=${agentId}`);
 
-      // Archive current project before clearing
-      const archiveAgents: PersistedAgent[] = orc.getAllAgents().map(a => ({
-        agentId: a.agentId, name: a.name, role: a.role,
-        personality: a.personality, backend: a.backend,
-        palette: a.palette, teamId: a.teamId, isTeamLead: orc.isTeamLead(a.agentId),
-      }));
-      let archiveTeam: TeamState["team"] = null;
-      const archivePhases = orc.getAllTeamPhases();
-      if (archivePhases.length > 0) {
-        const tp = archivePhases[0];
-        archiveTeam = { teamId: tp.teamId, leadAgentId: tp.leadAgentId, phase: tp.phase, projectDir: orc.getTeamProjectDir() };
-      }
-      archiveProject(archiveAgents, archiveTeam);
+      // Project was already archived when phase hit "complete".
+      // If somehow it wasn't (e.g. solo agent, no phase machine), archive now as fallback.
+      archiveProject(buildArchiveAgents(), buildArchiveTeam());
       resetProjectBuffer();
 
       orc.clearLeaderHistory(agentId);

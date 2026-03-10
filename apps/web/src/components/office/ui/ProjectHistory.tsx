@@ -180,7 +180,7 @@ function ProjectViewer({ events, name, preview, onBack, onPreview }: {
 export default function ProjectHistory({ isOpen, onClose, onPreview }: {
   isOpen: boolean;
   onClose: () => void;
-  onPreview?: (preview: NonNullable<ProjectSummary["preview"]>) => void;
+  onPreview?: (preview: NonNullable<ProjectSummary["preview"]>, ratings?: Record<string, number>) => void;
 }) {
   const { projectList, viewingProjectId, viewingProjectEvents, viewingProjectName, clearViewingProject } = useOfficeStore();
   const [loaded, setLoaded] = useState(false);
@@ -200,26 +200,21 @@ export default function ProjectHistory({ isOpen, onClose, onPreview }: {
 
   if (!isOpen) return null;
 
-  const handlePreview = (preview: NonNullable<ProjectSummary["preview"]>) => {
+  const handlePreview = (preview: NonNullable<ProjectSummary["preview"]>, ratings?: Record<string, number>) => {
+    // Strip markdown formatting from archived preview fields (e.g. "** `npx vite`" → "npx vite")
+    const clean = (v?: string) => v?.replace(/\*\*/g, "").replace(/`/g, "").replace(/^_+|_+$/g, "").trim() || undefined;
+    const cmd = clean(preview.previewCmd);
+    const entry = clean(preview.entryFile);
+    const dir = preview.projectDir;
     // previewCmd+port takes priority (Vite/Python/etc need a server, static serve won't work)
-    if (preview.previewCmd && preview.previewPort) {
-      sendCommand({
-        type: "SERVE_PREVIEW",
-        previewCmd: preview.previewCmd,
-        previewPort: preview.previewPort,
-        cwd: preview.projectDir,
-      });
-    } else if (preview.previewCmd) {
-      sendCommand({
-        type: "SERVE_PREVIEW",
-        previewCmd: preview.previewCmd,
-        cwd: preview.projectDir,
-      });
-    } else if (preview.entryFile && preview.projectDir) {
-      const fullPath = preview.projectDir + "/" + preview.entryFile;
-      sendCommand({ type: "SERVE_PREVIEW", filePath: fullPath });
+    if (cmd && preview.previewPort) {
+      sendCommand({ type: "SERVE_PREVIEW", previewCmd: cmd, previewPort: preview.previewPort, cwd: dir });
+    } else if (cmd) {
+      sendCommand({ type: "SERVE_PREVIEW", previewCmd: cmd, cwd: dir });
+    } else if (entry && dir) {
+      sendCommand({ type: "SERVE_PREVIEW", filePath: dir + "/" + entry });
     }
-    onPreview?.(preview);
+    onPreview?.(preview, ratings);
     onClose();
   };
 
@@ -269,7 +264,7 @@ export default function ProjectHistory({ isOpen, onClose, onPreview }: {
               name={viewingProjectName ?? "Project"}
               preview={viewingProject?.preview}
               onBack={clearViewingProject}
-              onPreview={handlePreview}
+              onPreview={(p) => handlePreview(p, viewingProject?.ratings)}
             />
           ) : (
             <div style={{ padding: "6px 0" }}>
@@ -370,7 +365,7 @@ export default function ProjectHistory({ isOpen, onClose, onPreview }: {
                       {/* Preview button */}
                       {hasPreview(p.preview) && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); handlePreview(p.preview!); }}
+                          onClick={(e) => { e.stopPropagation(); handlePreview(p.preview!, p.ratings); }}
                                                     style={{
                             background: "rgba(72, 204, 106, 0.1)", border: "1px solid rgba(72, 204, 106, 0.25)",
                             color: "#48cc6a", padding: "5px 12px", cursor: "pointer",

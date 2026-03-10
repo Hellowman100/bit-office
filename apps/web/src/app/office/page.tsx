@@ -151,10 +151,13 @@ function StarRow({ label, icon, value, onChange }: {
   );
 }
 
-function PreviewOverlay({ url, onClose }: { url: string; onClose: () => void }) {
+function PreviewOverlay({ url, onClose, savedRatings, submitted, onRate }: {
+  url: string; onClose: () => void;
+  savedRatings: Ratings; submitted: boolean;
+  onRate: (ratings: Record<string, number>) => void;
+}) {
   const [status, setStatus] = useState<"loading" | "ready">("loading");
   const [showRating, setShowRating] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [closing, setClosing] = useState(false);
 
   useEffect(() => {
@@ -164,7 +167,6 @@ function PreviewOverlay({ url, onClose }: { url: string; onClose: () => void }) 
   }, [url]);
 
   const handleClose = () => {
-    if (submitted) { onClose(); return; }
     setClosing(true);
   };
 
@@ -229,17 +231,21 @@ function PreviewOverlay({ url, onClose }: { url: string; onClose: () => void }) 
         {status === "ready" && (
           <iframe
             src={url}
-            style={{ width: "100%", height: "100%", border: "none" }}
+            style={{
+              width: "100%", height: "100%", border: "none",
+              // Hide iframe when rating popup is visible — iframes can render above overlays in some browsers
+              ...(closing || showRating ? { pointerEvents: "none" as const, visibility: "hidden" as const } : {}),
+            }}
             onLoad={(e) => (e.target as HTMLIFrameElement).focus()}
           />
         )}
       </div>
       {/* Rating popup — triggered by Rate button or on close */}
-      {(showRating || closing) && !submitted && (
+      {(showRating || closing) && (
         <RatingPopup
+          initialRatings={savedRatings}
           onSubmit={(r) => {
-            sendCommand({ type: "RATE_PROJECT", ratings: r });
-            setSubmitted(true);
+            onRate(r);
             setShowRating(false);
             if (closing) onClose();
           }}
@@ -330,30 +336,40 @@ function hasWebPreview(result: { previewUrl?: string; previewCmd?: string; previ
   return !!(result.previewUrl || (result.previewCmd && result.previewPort) || result.previewPath || (result.entryFile && /\.html?$/i.test(result.entryFile)));
 }
 
+/** Strip markdown formatting from preview fields */
+function cleanPreviewField(v?: string): string | undefined {
+  if (!v) return undefined;
+  const cleaned = v.replace(/\*\*/g, "").replace(/`/g, "").replace(/^_+|_+$/g, "").trim();
+  return cleaned || undefined;
+}
+
 /** Build a SERVE_PREVIEW command from result fields */
 function buildPreviewCommand(result: { previewPath?: string; previewCmd?: string; previewPort?: number; projectDir?: string; entryFile?: string }) {
-  if (result.previewCmd && result.previewPort) {
-    return { type: "SERVE_PREVIEW" as const, previewCmd: result.previewCmd, previewPort: result.previewPort, cwd: result.projectDir };
+  const cmd = cleanPreviewField(result.previewCmd);
+  const entry = cleanPreviewField(result.entryFile);
+  const previewPath = cleanPreviewField(result.previewPath);
+  if (cmd && result.previewPort) {
+    return { type: "SERVE_PREVIEW" as const, previewCmd: cmd, previewPort: result.previewPort, cwd: result.projectDir };
   }
-  if (result.previewPath) {
-    return { type: "SERVE_PREVIEW" as const, filePath: result.previewPath };
+  if (previewPath) {
+    return { type: "SERVE_PREVIEW" as const, filePath: previewPath };
   }
   // HTML entryFile with projectDir — serve the file statically
-  if (result.entryFile && /\.html?$/i.test(result.entryFile) && result.projectDir) {
-    return { type: "SERVE_PREVIEW" as const, filePath: result.projectDir + "/" + result.entryFile };
+  if (entry && /\.html?$/i.test(entry) && result.projectDir) {
+    return { type: "SERVE_PREVIEW" as const, filePath: result.projectDir + "/" + entry };
   }
   // Desktop/CLI app: PREVIEW_CMD without port, or non-HTML entry file
-  if (result.previewCmd) {
-    return { type: "SERVE_PREVIEW" as const, previewCmd: result.previewCmd, cwd: result.projectDir };
+  if (cmd) {
+    return { type: "SERVE_PREVIEW" as const, previewCmd: cmd, cwd: result.projectDir };
   }
-  if (result.entryFile && !/\.html?$/i.test(result.entryFile)) {
-    return { type: "SERVE_PREVIEW" as const, previewCmd: result.entryFile, cwd: result.projectDir };
+  if (entry && !/\.html?$/i.test(entry)) {
+    return { type: "SERVE_PREVIEW" as const, previewCmd: entry, cwd: result.projectDir };
   }
   return null;
 }
 
-function RatingPopup({ onSubmit, onSkip }: { onSubmit: (ratings: Record<string, number>) => void; onSkip: () => void }) {
-  const [ratings, setRatings] = useState<Ratings>({});
+function RatingPopup({ onSubmit, onSkip, initialRatings }: { onSubmit: (ratings: Record<string, number>) => void; onSkip: () => void; initialRatings?: Ratings }) {
+  const [ratings, setRatings] = useState<Ratings>(initialRatings ?? {});
   const hasRatings = Object.values(ratings).some((v) => v && v > 0);
 
   return (
@@ -413,7 +429,7 @@ function RatingPopup({ onSubmit, onSkip }: { onSubmit: (ratings: Record<string, 
   );
 }
 
-function CelebrationModal({ previewUrl, previewPath, onPreview, onDismiss, onRate, previewCmd, previewPort, projectDir, entryFile }: {
+function CelebrationModal({ previewUrl, previewPath, onPreview, onDismiss, previewCmd, previewPort, projectDir, entryFile }: {
   previewUrl?: string;
   previewPath?: string;
   previewCmd?: string;
@@ -422,7 +438,6 @@ function CelebrationModal({ previewUrl, previewPath, onPreview, onDismiss, onRat
   entryFile?: string;
   onPreview: (url: string) => void;
   onDismiss: () => void;
-  onRate: () => void;
 }) {
   const resultInfo = { previewUrl, previewCmd, previewPort, previewPath, entryFile };
   const canPreview = hasWebPreview(resultInfo);
@@ -481,16 +496,6 @@ function CelebrationModal({ previewUrl, previewPath, onPreview, onDismiss, onRat
               ▶ Launch
             </button>
           )}
-          <button
-            onClick={onRate}
-            style={{
-              padding: "9px 20px", border: "1px solid rgba(232,176,64,0.4)",
-              backgroundColor: "rgba(232,176,64,0.08)", color: "#e8b040",
-              fontSize: 13, cursor: "pointer", fontFamily: "monospace",
-            }}
-          >
-            ★ Rate
-          </button>
           <button
             onClick={onDismiss}
             style={{
@@ -2094,8 +2099,9 @@ export default function OfficePage() {
   const { agents, connected, addUserMessage, teamMessages, clearTeamMessages, teamPhases, agentDefs, role, suggestions, setRole } = useOfficeStore();
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewRatings, setPreviewRatings] = useState<Ratings>({});
+  const [previewRated, setPreviewRated] = useState(false);
   const [celebration, setCelebration] = useState<{ previewUrl?: string; previewPath?: string; previewCmd?: string; previewPort?: number; projectDir?: string; entryFile?: string } | null>(null);
-  const [showCelebrationRating, setShowCelebrationRating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const { confirm, modal: confirmModal } = useConfirm();
   const [showHireModal, setShowHireModal] = useState(false);
@@ -2175,6 +2181,8 @@ export default function OfficePage() {
         if (agentState.isTeamLead && !msg.isFinalResult) continue;
         // Solo agent or leader with isFinalResult → celebrate
         setCelebration({ previewUrl: r.previewUrl, previewPath: r.previewPath, previewCmd: r.previewCmd, previewPort: r.previewPort, projectDir: r.projectDir, entryFile: r.entryFile });
+        setPreviewRatings({});
+        setPreviewRated(false);
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
       }
@@ -3888,16 +3896,32 @@ export default function OfficePage() {
       <ProjectHistory
         isOpen={showHistory}
         onClose={() => setShowHistory(false)}
-        onPreview={(preview) => {
+        onPreview={(preview, ratings) => {
           const url = computePreviewUrl(preview);
           if (url) setPreviewUrl(url);
+          if (ratings && Object.keys(ratings).length > 0) {
+            setPreviewRatings(ratings as Ratings);
+            setPreviewRated(true);
+          }
         }}
       />
 
-      {previewUrl && <PreviewOverlay url={previewUrl} onClose={() => setPreviewUrl(null)} />}
+      {previewUrl && (
+        <PreviewOverlay
+          url={previewUrl}
+          savedRatings={previewRatings}
+          submitted={previewRated}
+          onRate={(r) => {
+            setPreviewRatings(r as Ratings);
+            setPreviewRated(true);
+            sendCommand({ type: "RATE_PROJECT", ratings: r });
+          }}
+          onClose={() => setPreviewUrl(null)}
+        />
+      )}
 
       {showConfetti && <ConfettiOverlay />}
-      {celebration && !showCelebrationRating && (
+      {celebration && (
         <CelebrationModal
           previewUrl={celebration.previewUrl}
           previewPath={celebration.previewPath}
@@ -3907,22 +3931,6 @@ export default function OfficePage() {
           entryFile={celebration.entryFile}
           onPreview={(url) => { setPreviewUrl(url); setCelebration(null); setShowConfetti(false); }}
           onDismiss={() => { setCelebration(null); setShowConfetti(false); }}
-          onRate={() => setShowCelebrationRating(true)}
-        />
-      )}
-      {showCelebrationRating && (
-        <RatingPopup
-          onSubmit={(r) => {
-            sendCommand({ type: "RATE_PROJECT", ratings: r });
-            setShowCelebrationRating(false);
-            setCelebration(null);
-            setShowConfetti(false);
-          }}
-          onSkip={() => {
-            setShowCelebrationRating(false);
-            setCelebration(null);
-            setShowConfetti(false);
-          }}
         />
       )}
       {/* Share link modal */}

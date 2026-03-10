@@ -33,13 +33,17 @@ export function parseAgentOutput(raw: string, fallbackText?: string | null): Par
   const entryFileMatch = text.match(/ENTRY_FILE:\s*(.+)/i);
   const projectDirMatch = text.match(/PROJECT_DIR:\s*(.+)/i);
   const previewCmdMatch = text.match(/PREVIEW_CMD:\s*(.+)/i);
-  const previewPortMatch = text.match(/PREVIEW_PORT:\s*(\d+)/i);
+  const previewPortMatch = text.match(/PREVIEW_PORT:\s*[*`_]*(\d+)/i);
+
+  // Strip markdown formatting (bold, backticks, italic) that leaders copy from dev output
+  const stripMarkdown = (v: string): string =>
+    v.replace(/\*\*/g, "").replace(/`/g, "").replace(/^_+|_+$/g, "").trim();
 
   const changedFiles: string[] = [];
   if (filesMatch) {
     const fileList = filesMatch[1].trim();
     for (const f of fileList.split(/[,\n]+/)) {
-      const cleaned = f.trim().replace(/^[-*]\s*/, "");
+      const cleaned = stripMarkdown(f.trim().replace(/^[-*]\s*/, ""));
       if (cleaned) changedFiles.push(cleaned);
     }
   }
@@ -48,9 +52,13 @@ export function parseAgentOutput(raw: string, fallbackText?: string | null): Par
   const isPlaceholder = (v: string | undefined): boolean =>
     !v || /^[\[(].*not provided.*[\])]$/i.test(v) || /^[\[(].*n\/?a.*[\])]$/i.test(v) || /^none$/i.test(v);
 
-  const entryFile = isPlaceholder(entryFileMatch?.[1]?.trim()) ? undefined : entryFileMatch![1].trim();
-  const projectDir = isPlaceholder(projectDirMatch?.[1]?.trim()) ? undefined : projectDirMatch![1].trim();
-  const previewCmd = isPlaceholder(previewCmdMatch?.[1]?.trim()) ? undefined : previewCmdMatch![1].trim();
+  const rawEntry = entryFileMatch?.[1]?.trim();
+  const rawDir = projectDirMatch?.[1]?.trim();
+  const rawCmd = previewCmdMatch?.[1]?.trim();
+
+  const entryFile = isPlaceholder(rawEntry) ? undefined : stripMarkdown(rawEntry!);
+  const projectDir = isPlaceholder(rawDir) ? undefined : stripMarkdown(rawDir!);
+  const previewCmd = isPlaceholder(rawCmd) ? undefined : stripMarkdown(rawCmd!);
   const previewPort = previewPortMatch ? parseInt(previewPortMatch[1], 10) : undefined;
 
   if (summaryMatch) {

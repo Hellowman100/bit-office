@@ -238,6 +238,17 @@ export function archiveProject(agents: PersistedAgent[], team: PersistedTeam | n
       : undefined;
 
   const id = `${projectStartedAt}-${projectName || "project"}`;
+
+  // Preserve ratings from existing archive (user may have rated before END_PROJECT)
+  const filePath = path.join(PROJECTS_DIR, `${id}.json`);
+  let existingRatings: ProjectRatings | undefined;
+  try {
+    if (existsSync(filePath)) {
+      const existing = JSON.parse(readFileSync(filePath, "utf-8")) as ProjectArchive;
+      existingRatings = existing.ratings;
+    }
+  } catch { /* ignore corrupt file */ }
+
   const archive: ProjectArchive = {
     id,
     name: projectName || "Untitled Project",
@@ -248,10 +259,10 @@ export function archiveProject(agents: PersistedAgent[], team: PersistedTeam | n
     events: projectEvents,
     preview,
     tokenUsage,
+    ratings: existingRatings,
   };
 
   try {
-    const filePath = path.join(PROJECTS_DIR, `${id}.json`);
     writeFileSync(filePath, JSON.stringify(archive), "utf-8");
     console.log(`[TeamState] Archived project "${archive.name}" (${projectEvents.length} events) → ${filePath}`);
     return id;
