@@ -17,7 +17,7 @@
 
 ---
 
-<video src="https://github.com/user-attachments/assets/a13ac1a0-8440-49f1-ab1e-110a35847d0c" controls width="100%"></video>
+![Bit Office Demo](https://github.com/user-attachments/assets/0add1297-a4ac-488f-b590-b0440e8f2a0f)
 
 ## What is Bit Office
 
